@@ -1,4 +1,4 @@
 User-agent: *
 Disallow:
 
-Sitemap: https://furusato-hikaku.example.com/sitemap.xml
+Sitemap: https://henreihin-hikaku.jp/sitemap.xml

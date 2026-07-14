@@ -36,12 +36,16 @@ class FurusatoController extends Controller
                         'Referer' => config('app.url'),
                         'Origin' => config('app.url'),
                     ])
-                    ->get('https://app.rakuten.co.jp/services/api/IchibaItem/Search/20220601', [
+                    ->get('https://openapi.rakuten.co.jp/ichibams/api/IchibaItem/Search/20260701', [
                         'format' => 'json',
                         'formatVersion' => 2,
                         'applicationId' => env('RAKUTEN_APP_ID'),
+                        'accessKey' => env('RAKUTEN_ACCESS_KEY'),
                         'affiliateId' => env('RAKUTEN_AFFILIATE_ID'),
-                        'keyword' => $keyword . ' ふるさと納税',
+                        'keyword' => $keyword,
+                        // ふるさと納税ジャンル(genreId=100227)で絞り込む。
+                        // キーワードに「ふるさと納税」を含めると0件になるため使用しない。
+                        'genreId' => 100227,
                         'hits' => 30,
                         'sort' => 'standard',
                     ]);
