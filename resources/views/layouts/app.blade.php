@@ -22,6 +22,10 @@
     <link rel="icon" href="/favicon.ico" sizes="any">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+      .btn-line { background: #06c755; color: #fff; border: none; }
+      .btn-line:hover { background: #05a848; color: #fff; }
+    </style>
 
     @stack('structured-data')
 </head>

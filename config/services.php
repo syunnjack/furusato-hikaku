@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+    'line' => [
+        'login_channel_id' => env('LINE_LOGIN_CHANNEL_ID'),
+        'login_channel_secret' => env('LINE_LOGIN_CHANNEL_SECRET'),
+        'login_redirect_uri' => env('LINE_LOGIN_REDIRECT_URI'),
+        'messaging_channel_access_token' => env('LINE_MESSAGING_CHANNEL_ACCESS_TOKEN'),
+        'messaging_channel_secret' => env('LINE_MESSAGING_CHANNEL_SECRET'),
+    ],
+
 ];

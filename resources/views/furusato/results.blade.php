@@ -79,6 +79,27 @@
   @if (session('review_success'))
     <div class="alert alert-success py-2">口コミを投稿しました！</div>
   @endif
+  @if (session('success'))
+    <div class="alert alert-success py-2">{{ session('success') }}</div>
+  @endif
+  @if ($errors->any())
+    <div class="alert alert-danger py-2">{{ $errors->first() }}</div>
+  @endif
+
+  @php
+    $isWatching = session('line_user_local_id')
+        ? \App\Models\Watch::where('line_user_id', session('line_user_local_id'))->where('keyword', $keyword)->exists()
+        : false;
+  @endphp
+  <form method="POST" action="{{ route('watches.toggle') }}" class="mb-3">
+    @csrf
+    <input type="hidden" name="keyword" value="{{ $keyword }}">
+    @if ($isWatching)
+      <button type="submit" class="btn btn-outline-secondary btn-sm">🔕 ウォッチをやめる</button>
+    @else
+      <button type="submit" class="btn btn-line btn-sm">🔔 「{{ $keyword }}」の新着・再登場をLINEで通知</button>
+    @endif
+  </form>
 
   @if(empty($results))
     <p>「{{ $keyword }}」に一致する返礼品が見つかりませんでした。別のキーワードもお試しください。</p>

@@ -11,7 +11,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // LINEサーバーからの外部POSTのためCSRF検証の対象外にする
+        $middleware->validateCsrfTokens(except: [
+            'line/webhook',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
