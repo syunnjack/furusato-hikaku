@@ -1,0 +1,34 @@
+name: One-off cleanup and symlink
+
+on:
+  workflow_dispatch:
+
+jobs:
+  cleanup-and-link:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Move stray app files into app/ and create public_html symlink
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          port: 10022
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd /home/xs501620/furusato-hikaku.net
+            echo "--- before ---"
+            ls -la .
+            mkdir -p app
+            for f in .editorconfig .env .env.example .gitattributes .gitignore README.md artisan bootstrap composer.json composer.lock config database package-lock.json package.json phpunit.xml public resources routes storage vendor vite.config.js; do
+              if [ -e "$f" ] && [ "$f" != "app" ]; then
+                mv "$f" "app/$f" 2>/dev/null || true
+              fi
+            done
+            rm -f index.html.xserver-default.bak default_page.png 2>/dev/null || true
+            if [ -L public_html ] || [ -e public_html ]; then
+              rm -rf public_html
+            fi
+            ln -s app/public public_html
+            echo "--- after ---"
+            ls -la .
