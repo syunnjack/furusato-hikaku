@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', config('app.name') . ' | 返礼品を口コミで比較して選ぶ')
-@section('description', 'ふるさと納税の返礼品をジャンル・キーワードから検索できるサイトです。楽天市場の情報に加えて、実際に選んだ人の口コミも確認できます。')
+@section('title', config('app.name') . ' | 実データで探すふるさと納税返礼品')
+@section('description', number_format($catalogCount) . '件の実在するふるさと納税返礼品を、カテゴリ・地域・寄付額・口コミで比較できます。楽天市場の最新データを毎日更新。')
 
 @push('structured-data')
 <script type="application/ld+json">
@@ -10,46 +10,109 @@
     '@type' => 'WebSite',
     'name' => config('app.name'),
     'url' => url('/'),
-    'description' => 'ふるさと納税の返礼品をジャンル・キーワードから検索できる比較情報サイト。',
+    'description' => '実在するふるさと納税返礼品をカテゴリ・地域・寄付額・口コミで探せる比較情報サイト。',
     'inLanguage' => 'ja',
+    'potentialAction' => [
+        '@type' => 'SearchAction',
+        'target' => route('furusato.search') . '?keyword={search_term_string}',
+        'query-input' => 'required name=search_term_string',
+    ],
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}
 </script>
 @endpush
 
 @section('content')
-<div class="container">
-  <h1>返礼品を探す</h1>
-  <p class="text-muted">
-    {{ config('app.name') }}では、ジャンルやキーワードからふるさと納税の返礼品を検索できます。
-    楽天市場の返礼品情報に加えて、実際に選んだ人の口コミも確認できます。
-  </p>
+<section class="hero-panel">
+  <div class="hero-panel__content">
+    <span class="eyebrow">楽天市場の返礼品データを毎日更新</span>
+    <h1>欲しい返礼品を、<br class="d-none d-md-block">地域・寄付額・口コミから。</h1>
+    <p>実在する返礼品を横断検索。人気順だけでなく、寄付額や都道府県で絞り込んで、自分に合う一品を見つけられます。</p>
 
-  <form method="GET" action="{{ route('furusato.search') }}" class="row g-2 mb-4">
-    <div class="col-9 col-md-10">
-      <input type="text" name="keyword" class="form-control" placeholder="例：牛肉、いくら、〇〇市など" required>
-    </div>
-    <div class="col-3 col-md-2">
-      <button type="submit" class="btn btn-primary w-100">検索</button>
-    </div>
-  </form>
+    <form method="GET" action="{{ route('furusato.search') }}" class="hero-search">
+      <label for="hero-keyword" class="visually-hidden">返礼品を検索</label>
+      <input id="hero-keyword" type="search" name="keyword" placeholder="牛肉、ホタテ、気仙沼市など" required>
+      <button type="submit">返礼品を検索</button>
+    </form>
 
-  <h2 class="h5">人気ジャンルから探す</h2>
-  <div class="row row-cols-2 row-cols-md-4 g-2 mt-1">
-    @foreach ($categories as $category)
-      <div class="col">
-        <a href="{{ route('furusato.search', ['keyword' => $category]) }}" class="btn btn-outline-primary w-100">
-          {{ $category }}
-        </a>
-      </div>
+    <div class="quick-links">
+      <span>人気:</span>
+      @foreach(['牛肉', 'ホタテ', '米 10kg', 'シャインマスカット', 'ティッシュ'] as $term)
+        <a href="{{ route('furusato.search', ['keyword' => $term]) }}">{{ $term }}</a>
+      @endforeach
+    </div>
+  </div>
+</section>
+
+<section class="catalog-stats" aria-label="掲載データ概要">
+  <div><strong>{{ number_format($catalogCount) }}</strong><span>掲載返礼品</span></div>
+  <div><strong>{{ number_format($prefectureCount) }}</strong><span>都道府県</span></div>
+  <div><strong>{{ number_format($municipalityCount) }}</strong><span>自治体</span></div>
+  <div><strong>毎日</strong><span>データ更新</span></div>
+</section>
+
+<section class="content-section">
+  <div class="section-heading">
+    <div>
+      <span class="eyebrow">CATEGORY</span>
+      <h2>カテゴリから探す</h2>
+    </div>
+    <a href="{{ route('furusato.search', ['sort' => 'popular']) }}">すべて見る →</a>
+  </div>
+  <div class="category-grid">
+    @php($categoryIcons = ['肉' => '🥩', '海鮮・魚介' => '🐟', '米・パン' => '🌾', 'フルーツ' => '🍓', '野菜' => '🥬', 'お酒' => '🍶', 'スイーツ' => '🍰', '日用品' => '🧻', '家電' => '📺', '旅行・体験' => '♨️', '工芸品' => '🏺', 'その他' => '🎁'])
+    @foreach($categories as $category)
+      <a href="{{ route('furusato.search', ['category' => $category]) }}" class="category-tile">
+        <span class="category-tile__icon">{{ $categoryIcons[$category] ?? '🎁' }}</span>
+        <span><strong>{{ $category }}</strong><small>{{ number_format((int) ($categoryCounts[$category] ?? 0)) }}件</small></span>
+      </a>
     @endforeach
   </div>
+</section>
 
-  <section class="mt-5 pt-4 border-top">
-    <h2 class="h5">このサイトの特徴</h2>
-    <p class="text-muted small">
-      各返礼品ページでは、楽天市場での申し込みリンクだけでなく、実際に選んだ人のリアルな口コミも確認できます。
-      詳しくは<a href="{{ route('about') }}">このサイトについて</a>をご覧ください。
-    </p>
-  </section>
-</div>
+@if($featured->isNotEmpty())
+<section class="content-section">
+  <div class="section-heading">
+    <div><span class="eyebrow">POPULAR</span><h2>レビューで人気の返礼品</h2></div>
+    <a href="{{ route('furusato.search', ['sort' => 'popular']) }}">人気順をもっと見る →</a>
+  </div>
+  <div class="row row-cols-2 row-cols-md-3 row-cols-xl-4 g-3 g-lg-4">
+    @foreach($featured as $item)
+      <div class="col">@include('furusato._item-card', ['item' => $item])</div>
+    @endforeach
+  </div>
+</section>
+@endif
+
+@if($affordable->isNotEmpty())
+<section class="content-section content-section--tint">
+  <div class="section-heading">
+    <div><span class="eyebrow">UNDER ¥12,000</span><h2>12,000円以下の人気返礼品</h2></div>
+    <a href="{{ route('furusato.search', ['max_price' => 12000, 'sort' => 'popular']) }}">この金額帯をもっと見る →</a>
+  </div>
+  <div class="row row-cols-2 row-cols-md-4 g-3">
+    @foreach($affordable as $item)
+      <div class="col">@include('furusato._item-card', ['item' => $item])</div>
+    @endforeach
+  </div>
+</section>
+@endif
+
+@if($popularPrefectures->isNotEmpty())
+<section class="content-section">
+  <div class="section-heading"><div><span class="eyebrow">AREA</span><h2>地域から探す</h2></div></div>
+  <div class="prefecture-links">
+    @foreach($popularPrefectures as $area)
+      <a href="{{ route('furusato.search', ['prefecture' => $area->prefecture]) }}">
+        {{ $area->prefecture }} <small>{{ number_format($area->total) }}件</small>
+      </a>
+    @endforeach
+  </div>
+</section>
+@endif
+
+<section class="guide-panel">
+  <div><span class="guide-panel__number">1</span><strong>条件を決める</strong><p>カテゴリ・地域・寄付額を選択</p></div>
+  <div><span class="guide-panel__number">2</span><strong>実データで比較</strong><p>寄付額と楽天レビューを確認</p></div>
+  <div><span class="guide-panel__number">3</span><strong>公式ページで申込</strong><p>最新の在庫・配送条件を確認</p></div>
+</section>
 @endsection
