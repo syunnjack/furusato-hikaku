@@ -1,0 +1,31 @@
+name: Sync furusato catalog
+
+on:
+  schedule:
+    - cron: '20 18 * * *'
+  workflow_dispatch:
+    inputs:
+      pages:
+        description: Number of Rakuten API pages to sync
+        required: false
+        default: '50'
+
+concurrency:
+  group: furusato-catalog-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync production catalog over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          port: 10022
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd "${{ secrets.XSERVER_DEPLOY_PATH }}"
+            /usr/bin/php8.3 artisan furusato:sync-catalog --pages=${{ inputs.pages || '50' }} --delay=800

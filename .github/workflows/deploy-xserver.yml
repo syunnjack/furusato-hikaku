@@ -65,7 +65,7 @@ jobs:
           remote_user: ${{ secrets.SSH_USERNAME }}
           remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Run migrations, cache config
+      - name: Run migrations, sync catalog, cache config
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -82,3 +82,4 @@ jobs:
             /usr/bin/php8.3 artisan config:cache
             /usr/bin/php8.3 artisan route:cache
             /usr/bin/php8.3 artisan view:cache
+            /usr/bin/php8.3 artisan furusato:sync-catalog --pages=50 --delay=800

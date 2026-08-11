@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [FurusatoController::class, 'index'])->name('furusato.index');
 Route::get('/search', [FurusatoController::class, 'search'])->name('furusato.search');
+Route::get('/gifts/{furusatoItem}', [FurusatoController::class, 'show'])->name('furusato.show');
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 Route::view('/about', 'about')->name('about');
 
