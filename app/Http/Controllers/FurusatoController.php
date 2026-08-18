@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\FurusatoItem;
+use App\Models\Municipality;
 use App\Models\Review;
 use App\Support\RakutenFurusatoSearch;
 use Illuminate\Database\Eloquent\Builder;
@@ -40,8 +41,18 @@ class FurusatoController extends Controller
             ->limit(12)
             ->get();
 
+        // 返礼品カタログとは別に、総務省が公表している自治体の受入実績も入口として見せる。
+        $topMunicipalities = Municipality::query()
+            ->cities()
+            ->select(['code', 'prefecture', 'city', 'amount', 'count'])
+            ->orderByDesc('amount')
+            ->limit(12)
+            ->get();
+
         return view('furusato.index', [
             'categories' => FurusatoItem::CATEGORIES,
+            'topMunicipalities' => $topMunicipalities,
+            'municipalityFiscalYear' => Municipality::FISCAL_YEAR,
             'catalogCount' => $catalogCount,
             'municipalityCount' => $municipalityCount,
             'prefectureCount' => $prefectureCount,

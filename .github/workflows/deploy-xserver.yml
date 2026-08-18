@@ -79,6 +79,9 @@ jobs:
             touch database/database.sqlite
             chmod -R 775 storage database
             /usr/bin/php8.3 artisan migrate --force
+            # 総務省の現況調査データ（自治体ページの中身）。code をキーにした
+            # upsert なので、毎回流しても内容は変わらない。
+            /usr/bin/php8.3 artisan db:seed --class=MunicipalitySeeder --force
             /usr/bin/php8.3 artisan config:cache
             /usr/bin/php8.3 artisan route:cache
             /usr/bin/php8.3 artisan view:cache

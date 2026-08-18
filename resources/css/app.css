@@ -91,7 +91,7 @@ a { color:var(--green); }
 .review-form { padding:18px; border-radius:14px; background:var(--cream); }
 .review-form summary { cursor:pointer; color:var(--green); font-weight:800; }
 .site-footer { padding:48px 0 22px; color:#c8d6d1; background:#183b31; }
-.site-footer__grid { display:grid; grid-template-columns:2fr 1fr 1fr; gap:50px; }
+.site-footer__grid { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:40px; }
 .site-logo--footer { color:#fff; }
 .site-footer p { max-width:500px; margin:12px 0; font-size:.78rem; }
 .site-footer__grid>div { display:flex; flex-direction:column; gap:7px; }

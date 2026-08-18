@@ -42,6 +42,7 @@
             <div class="site-nav__links">
                 <a href="{{ route('furusato.search', ['sort' => 'popular']) }}">返礼品を探す</a>
                 <a href="{{ route('furusato.search', ['category' => '肉']) }}">人気カテゴリ</a>
+                <a href="{{ route('municipalities.index') }}">自治体で選ぶ</a>
                 <a href="{{ route('about') }}">このサイトについて</a>
             </div>
         </nav>
@@ -53,6 +54,7 @@
         <div class="container site-footer__grid">
             <div><a href="{{ route('furusato.index') }}" class="site-logo site-logo--footer"><span>ふるさと</span>納税比較</a><p>実在する返礼品を、寄付額・地域・レビューから見つける比較情報サイトです。</p></div>
             <div><strong>返礼品を探す</strong><a href="{{ route('furusato.search', ['category' => '肉']) }}">肉</a><a href="{{ route('furusato.search', ['category' => '海鮮・魚介']) }}">海鮮・魚介</a><a href="{{ route('furusato.search', ['category' => '米・パン']) }}">米・パン</a></div>
+            <div><strong>寄附先を知る</strong><a href="{{ route('municipalities.index') }}">自治体別の受入額</a><a href="{{ route('municipalities.prefecture', 'hokkaido') }}">北海道の自治体</a><a href="{{ route('municipalities.prefecture', 'miyazaki') }}">宮崎県の自治体</a></div>
             <div><strong>サイト情報</strong><a href="{{ route('about') }}">このサイトについて</a><a href="{{ route('sitemap') }}">サイトマップ</a></div>
         </div>
         <div class="container site-footer__legal">

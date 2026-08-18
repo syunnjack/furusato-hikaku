@@ -110,6 +110,25 @@
 </section>
 @endif
 
+@if($topMunicipalities->isNotEmpty())
+<section class="content-section">
+  <div class="section-heading">
+    <div><span class="eyebrow">MUNICIPALITY</span><h2>寄附が多く集まった自治体</h2></div>
+    <a href="{{ route('municipalities.index') }}">全国の受入額を見る →</a>
+  </div>
+  <p class="text-muted">
+    総務省が公表した{{ $municipalityFiscalYear }}の実績です。自治体名から、受入額の推移や寄附の使い道を確認できます。
+  </p>
+  <div class="prefecture-links">
+    @foreach($topMunicipalities as $municipality)
+      <a href="{{ route('municipalities.show', [$municipality->prefecture_slug, $municipality->code]) }}">
+        {{ $municipality->city }} <small>{{ number_format(round($municipality->amount / 100000000, 1), 1) }}億円</small>
+      </a>
+    @endforeach
+  </div>
+</section>
+@endif
+
 <section class="guide-panel">
   <div><span class="guide-panel__number">1</span><strong>条件を決める</strong><p>カテゴリ・地域・寄付額を選択</p></div>
   <div><span class="guide-panel__number">2</span><strong>実データで比較</strong><p>寄付額と楽天レビューを確認</p></div>
