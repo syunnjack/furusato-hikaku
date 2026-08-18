@@ -80,13 +80,20 @@
 
 @if($keyword !== '')
   @php($isWatching = session('line_user_local_id') ? \App\Models\Watch::where('line_user_id', session('line_user_local_id'))->where('keyword', $keyword)->exists() : false)
-  <form method="POST" action="{{ route('watches.toggle') }}" class="mb-4">
-    @csrf
-    <input type="hidden" name="keyword" value="{{ $keyword }}">
-    <button type="submit" class="btn {{ $isWatching ? 'btn-outline-secondary' : 'btn-line' }} btn-sm">
-      {{ $isWatching ? '🔕 ウォッチをやめる' : '🔔 新着・再登場をLINEで通知' }}
-    </button>
-  </form>
+  {{-- LINEの認証情報が未設定のうちは、押すとLINE側でエラーになるので出さない --}}
+  @if (config('services.line.login_channel_id'))
+    <form method="POST" action="{{ route('watches.toggle') }}" class="mb-4">
+      @csrf
+      <input type="hidden" name="keyword" value="{{ $keyword }}">
+      <button type="submit" class="btn {{ $isWatching ? 'btn-outline-secondary' : 'btn-line' }} btn-sm">
+        {{ $isWatching ? '🔕 ウォッチをやめる' : '🔔 新着・再登場をLINEで通知' }}
+      </button>
+    </form>
+  @else
+    <p class="mb-4">
+      <button type="button" class="btn btn-secondary btn-sm" disabled>🔔 新着・再登場をLINEで通知（準備中）</button>
+    </p>
+  @endif
 @endif
 
 @if($items->isEmpty())
