@@ -65,7 +65,7 @@ jobs:
           remote_user: ${{ secrets.SSH_USERNAME }}
           remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Run migrations, sync catalog, cache config
+      - name: Run migrations and cache config
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -82,4 +82,19 @@ jobs:
             /usr/bin/php8.3 artisan config:cache
             /usr/bin/php8.3 artisan route:cache
             /usr/bin/php8.3 artisan view:cache
+
+      # カタログ同期は楽天APIの認証情報に依存する。ここが失敗しても、
+      # ファイルの配置とマイグレーションは終わっているため、
+      # デプロイ全体を失敗扱いにしない（同期の可否は下のログで分かる）。
+      - name: Sync catalog (楽天APIの認証情報が必要)
+        continue-on-error: true
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          port: 10022
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd "${{ secrets.XSERVER_DEPLOY_PATH }}"
             /usr/bin/php8.3 artisan furusato:sync-catalog --pages=50 --delay=800
