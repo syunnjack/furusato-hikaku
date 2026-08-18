@@ -15,7 +15,7 @@ class MunicipalityController extends Controller
         // 一覧では巨大なJSON列（推移・使い道）まで読み込む必要がない。
         $cities = Municipality::query()
             ->cities()
-            ->select(['code', 'prefecture', 'city', 'amount', 'count', 'national_rank'])
+            ->select(['code', 'prefecture', 'city', 'amount', 'count', 'national_rank', 'deduction_donation', 'deduction_amount'])
             ->get();
 
         $prefectures = $cities->groupBy('prefecture')
@@ -34,6 +34,8 @@ class MunicipalityController extends Controller
             'prefectures' => $prefectures,
             'totalAmount' => (int) $cities->sum('amount'),
             'totalCount' => (int) $cities->sum('count'),
+            'totalDeductionDonation' => (int) $cities->sum('deduction_donation'),
+            'totalDeductionAmount' => (int) $cities->sum('deduction_amount'),
             'cityCount' => $cities->count(),
             'ranking' => $cities->sortByDesc('amount')->take(50)->values(),
             'meta' => $this->meta(),
@@ -70,6 +72,8 @@ class MunicipalityController extends Controller
             'cities' => $cities,
             'totalAmount' => (int) $cities->sum('amount'),
             'totalCount' => (int) $cities->sum('count'),
+            'totalDeductionDonation' => (int) $cities->sum('deduction_donation'),
+            'totalDeductionAmount' => (int) $cities->sum('deduction_amount'),
             'fields' => $this->fieldTotals($cities),
             'items' => FurusatoItem::where('prefecture', $prefecture)
                 ->orderByDesc('review_count')
@@ -135,6 +139,8 @@ class MunicipalityController extends Controller
     {
         return [
             'fiscalYear' => Municipality::FISCAL_YEAR,
+            'taxYear' => Municipality::TAX_YEAR,
+            'deductionSourceLabel' => Municipality::DEDUCTION_SOURCE_LABEL,
             'sourceLabel' => Municipality::SOURCE_LABEL,
             'sourceUrl' => Municipality::SOURCE_URL,
         ];

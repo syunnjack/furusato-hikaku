@@ -40,6 +40,14 @@
   自治体名をたどると、受入額の推移や寄附の使い道まで確認できます。
 </p>
 
+@if($totalDeductionAmount)
+<p class="text-muted">
+  反対に、{{ $prefecture }}に住む人が他の自治体へ寄附して受けた住民税の控除は、
+  {{ $meta['taxYear'] }}分で合計{{ \App\Models\Municipality::formatYen($totalDeductionAmount) }}でした
+  （寄附した額は{{ \App\Models\Municipality::formatYen($totalDeductionDonation) }}）。
+</p>
+@endif
+
 <section class="content-section">
   <div class="section-heading"><div><span class="eyebrow">CITY</span><h2>市区町村別の受入額</h2></div></div>
   <div class="table-responsive">
@@ -101,6 +109,7 @@
 @endif
 
 <p class="text-muted small">
-  出典：<a href="{{ $meta['sourceUrl'] }}" target="_blank" rel="noopener">{{ $meta['sourceLabel'] }}</a>。
+  出典：<a href="{{ $meta['sourceUrl'] }}" target="_blank" rel="noopener">{{ $meta['sourceLabel'] }}</a>、
+  {{ $meta['deductionSourceLabel'] }}。
 </p>
 @endsection

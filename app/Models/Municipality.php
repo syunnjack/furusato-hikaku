@@ -12,10 +12,14 @@ class Municipality extends Model
         'use_by_field', 'cf_projects', 'cf_amount', 'projects', 'field_breakdown', 'series',
         'publish_amount', 'publish_usage', 'publish_progress', 'donor_relation',
         'onestop_online', 'national_rank', 'prefecture_rank',
+        'deduction_people', 'deduction_donation', 'deduction_amount',
+        'onestop_people', 'onestop_donation',
     ];
 
     // 掲載データの出典。scripts/build-municipality-data.py が読む調査と対応させる。
     public const FISCAL_YEAR = '令和7年度';
+    public const TAX_YEAR = '令和8年度課税';
+    public const DEDUCTION_SOURCE_LABEL = '総務省「令和8年度課税におけるふるさと納税に係る寄附金税額控除の適用状況」';
     public const SOURCE_LABEL = '総務省「ふるさと納税に関する現況調査結果（令和8年度実施）」';
     public const SOURCE_URL = 'https://www.soumu.go.jp/main_sosiki/jichi_zeisei/czaisei/czaisei_seido/furusato/archive/';
 
@@ -58,7 +62,32 @@ class Municipality extends Model
             'publish_progress' => 'boolean',
             'national_rank' => 'integer',
             'prefecture_rank' => 'integer',
+            'deduction_people' => 'integer',
+            'deduction_donation' => 'integer',
+            'deduction_amount' => 'integer',
+            'onestop_people' => 'integer',
+            'onestop_donation' => 'integer',
         ];
+    }
+
+    /** 桁が大きい合計を、読める単位（兆・億）にする。1億円未満は万円まで。 */
+    public static function formatYen(?int $amount): string
+    {
+        if (! $amount) {
+            return '—';
+        }
+
+        $oku = intdiv($amount, 100000000);
+
+        if ($oku >= 10000) {
+            return number_format(intdiv($oku, 10000)).'兆'.number_format($oku % 10000).'億円';
+        }
+
+        if ($oku >= 1) {
+            return number_format($oku).'億円';
+        }
+
+        return number_format(round($amount / 10000)).'万円';
     }
 
     public static function slugFor(string $prefecture): ?string

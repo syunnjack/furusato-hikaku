@@ -5,6 +5,8 @@
     https://www.soumu.go.jp/main_content/001084989.xlsx
   - 各自治体のふるさと納税受入額及び受入件数（平成20年度〜令和7年度）
     https://www.soumu.go.jp/main_content/001084990.xlsx
+  - 各自治体の令和8年度課税における住民税控除額等
+    https://www.soumu.go.jp/main_content/001085012.xlsx
   調査ページ: https://www.soumu.go.jp/main_sosiki/jichi_zeisei/czaisei/czaisei_seido/furusato/archive/
 
 使い方: python scripts/build-municipality-data.py
@@ -21,7 +23,9 @@ from pathlib import Path
 SOURCE_URL = 'https://www.soumu.go.jp/main_sosiki/jichi_zeisei/czaisei/czaisei_seido/furusato/archive/'
 SURVEY_XLSX = 'https://www.soumu.go.jp/main_content/001084989.xlsx'
 SERIES_XLSX = 'https://www.soumu.go.jp/main_content/001084990.xlsx'
+DEDUCTION_XLSX = 'https://www.soumu.go.jp/main_content/001085012.xlsx'
 FISCAL_YEAR = '令和7年度'
+TAX_YEAR = '令和8年度課税'
 OUTPUT = Path(__file__).resolve().parent.parent / 'database' / 'data' / 'municipalities.json'
 CACHE = Path(__file__).resolve().parent / '.cache'
 
@@ -181,6 +185,7 @@ for r in rows:
         'donor_relation': text(r.get('DL')),
         'onestop_online': ONESTOP.get(str(r.get('AH') or '').strip()),
         'series': [],
+        'deduction': None,
     }
 
 # 受入額の推移（平成20年度〜令和7年度）。単位は千円なので円に直す。
@@ -210,13 +215,39 @@ for r in sheet_rows(download(SERIES_XLSX))[4:]:
         })
     rec['series'] = series
 
+# 住民税の控除状況（＝その自治体に住む人がふるさと納税をした側の数字）。
+# 団体コードは先頭の0が落ちた5桁で入っているため、6桁にそろえて突き合わせる。
+by_code = {r['code']: r for r in records.values()}
+deduction_unmatched = 0
+for r in sheet_rows(download(DEDUCTION_XLSX))[18:]:  # 18行目までは注記と見出し
+    code = str(r.get('A') or '').strip()
+    if not code:
+        continue
+    rec = by_code.get(code.zfill(6))
+    if rec is None:
+        deduction_unmatched += 1
+        continue
+    municipal_tax = yen(r.get('F'))    # 市町村民税からの控除額
+    prefectural_tax = yen(r.get('M'))  # 道府県民税からの控除額
+    rec['deduction'] = {
+        'taxYear': TAX_YEAR,
+        'people': yen(r.get('D')),
+        'donation': yen(r.get('E')),
+        'amount': None if municipal_tax is None and prefectural_tax is None
+                  else (municipal_tax or 0) + (prefectural_tax or 0),
+        'onestopPeople': yen(r.get('G')),
+        'onestopDonation': yen(r.get('H')),
+    }
+
 out = sorted(records.values(), key=lambda x: x['code'])
 payload = {
     'fiscalYear': FISCAL_YEAR,
+    'taxYear': TAX_YEAR,
     'sourceLabel': '総務省「ふるさと納税に関する現況調査結果（令和8年度実施）」',
     'sourceUrl': SOURCE_URL,
     'municipalities': out,
 }
 OUTPUT.write_text(json.dumps(payload, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
 print(f'{len(out)}団体を書き出しました（推移データあり: {sum(1 for r in out if r["series"])}、'
-      f'突合できなかった行: {len(unmatched)}）')
+      f'控除データあり: {sum(1 for r in out if r["deduction"])}、'
+      f'突合できなかった行: 推移{len(unmatched)} / 控除{deduction_unmatched}）')

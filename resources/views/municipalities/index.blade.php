@@ -34,11 +34,19 @@
 </p>
 
 <section class="catalog-stats" aria-label="全国の実績">
-  <div><strong>{{ number_format(round($totalAmount / 100000000)) }}億円</strong><span>市区町村の受入額合計</span></div>
+  <div><strong>{{ \App\Models\Municipality::formatYen($totalAmount) }}</strong><span>市区町村の受入額合計</span></div>
   <div><strong>{{ number_format(round($totalCount / 10000)) }}万件</strong><span>受入件数</span></div>
   <div><strong>{{ number_format($cityCount) }}</strong><span>掲載市区町村</span></div>
   <div><strong>47</strong><span>都道府県</span></div>
 </section>
+
+@if($totalDeductionAmount)
+<p class="text-muted">
+  一方で、ふるさと納税で住民税の控除を受けた分は全国で{{ \App\Models\Municipality::formatYen($totalDeductionAmount) }}でした
+  （{{ $meta['taxYear'] }}分。住民が寄附した額は{{ \App\Models\Municipality::formatYen($totalDeductionDonation) }}）。
+  受入額と控除額は集計の区切りが違うため、そのまま差し引いた額が地域の収支になるわけではありません。
+</p>
+@endif
 
 <section class="content-section">
   <div class="section-heading"><div><span class="eyebrow">AREA</span><h2>都道府県から探す</h2></div></div>
@@ -85,7 +93,8 @@
 </section>
 
 <p class="text-muted small">
-  出典：<a href="{{ $meta['sourceUrl'] }}" target="_blank" rel="noopener">{{ $meta['sourceLabel'] }}</a>。
+  出典：<a href="{{ $meta['sourceUrl'] }}" target="_blank" rel="noopener">{{ $meta['sourceLabel'] }}</a>、
+  {{ $meta['deductionSourceLabel'] }}。
   金額・件数は{{ $meta['fiscalYear'] }}の決算見込として公表された値です。
 </p>
 @endsection

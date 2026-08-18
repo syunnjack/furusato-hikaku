@@ -35,7 +35,9 @@ class MunicipalityPagesTest extends TestCase
             ->assertSee('都城市のふるさと納税')
             ->assertSee('21,646,358,900')
             ->assertSee('子ども・子育て')
-            ->assertSee('令和6年度');
+            ->assertSee('令和6年度')
+            ->assertSee('都城市に住む人のふるさと納税')
+            ->assertSee('9,220人');
     }
 
     public function test_unknown_prefecture_and_code_return_not_found(): void
@@ -88,6 +90,11 @@ class MunicipalityPagesTest extends TestCase
             'onestop_online' => '対応済み',
             'national_rank' => 3,
             'prefecture_rank' => 1,
+            'deduction_people' => 9220,
+            'deduction_donation' => 690600461,
+            'deduction_amount' => 531271985,
+            'onestop_people' => 5679,
+            'onestop_donation' => 260691039,
         ];
     }
 }

@@ -47,6 +47,7 @@ class MunicipalitySeeder extends Seeder
             $rows = [];
 
             foreach ($chunk as $r) {
+                $deduction = $r['deduction'] ?? null;
                 $rows[] = [
                     'code' => $r['code'],
                     'prefecture' => $r['prefecture'],
@@ -71,6 +72,11 @@ class MunicipalitySeeder extends Seeder
                     'publish_progress' => $r['publish_progress'],
                     'donor_relation' => $r['donor_relation'],
                     'onestop_online' => $r['onestop_online'],
+                    'deduction_people' => $deduction['people'] ?? null,
+                    'deduction_donation' => $deduction['donation'] ?? null,
+                    'deduction_amount' => $deduction['amount'] ?? null,
+                    'onestop_people' => $deduction['onestopPeople'] ?? null,
+                    'onestop_donation' => $deduction['onestopDonation'] ?? null,
                     'national_rank' => $nationalRanks[$r['code']] ?? null,
                     'prefecture_rank' => $prefectureRanks[$r['code']] ?? null,
                     'created_at' => $now,
@@ -86,7 +92,9 @@ class MunicipalitySeeder extends Seeder
                     'cost_total', 'cost_ratio', 'reward_provided', 'use_selectable', 'use_by_project',
                     'use_by_field', 'cf_projects', 'cf_amount', 'projects', 'field_breakdown', 'series',
                     'publish_amount', 'publish_usage', 'publish_progress', 'donor_relation',
-                    'onestop_online', 'national_rank', 'prefecture_rank', 'updated_at',
+                    'onestop_online', 'national_rank', 'prefecture_rank',
+                    'deduction_people', 'deduction_donation', 'deduction_amount',
+                    'onestop_people', 'onestop_donation', 'updated_at',
                 ]
             );
 

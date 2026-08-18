@@ -141,6 +141,34 @@
 </section>
 @endif
 
+@if($municipality->deduction_people)
+<section class="content-section border-top">
+  <h2 class="h4 fw-bold mb-3">{{ $name }}に住む人のふるさと納税</h2>
+  <p class="text-muted small">
+    {{ $municipality->display_name }}へ集まった寄附とは反対に、ここに住む人が他の自治体へ寄附し、
+    住民税の控除を受けた分です（{{ $meta['taxYear'] }}）。
+  </p>
+  <dl class="gift-detail__facts">
+    <div><dt>控除を受けた人</dt><dd>{{ number_format($municipality->deduction_people) }}人</dd></div>
+    @if($municipality->deduction_donation)
+      <div><dt>住民が寄附した額</dt><dd>{{ number_format($municipality->deduction_donation) }}円</dd></div>
+    @endif
+    @if($municipality->deduction_amount)
+      <div><dt>住民税から控除された額</dt><dd>{{ number_format($municipality->deduction_amount) }}円</dd></div>
+    @endif
+    @if($municipality->onestop_people)
+      <div><dt>ワンストップ特例の利用</dt><dd>{{ number_format($municipality->onestop_people) }}人（{{ number_format($municipality->onestop_donation) }}円）</dd></div>
+    @endif
+  </dl>
+  @if($municipality->amount && $municipality->deduction_amount)
+    <p class="text-muted small">
+      受け入れた{{ number_format($municipality->amount) }}円に対して、住民税の控除は{{ number_format($municipality->deduction_amount) }}円でした。
+      集計の区切りが異なる（受入額は{{ $meta['fiscalYear'] }}、控除は{{ $meta['taxYear'] }}）ため、そのまま差し引いた額が収支になるわけではありません。
+    </p>
+  @endif
+</section>
+@endif
+
 @if($series->count() > 1)
 <section class="content-section border-top">
   <h2 class="h4 fw-bold mb-3">受入額の推移</h2>
@@ -189,7 +217,8 @@
 @endif
 
 <p class="text-muted small">
-  出典：<a href="{{ $meta['sourceUrl'] }}" target="_blank" rel="noopener">{{ $meta['sourceLabel'] }}</a>。
+  出典：<a href="{{ $meta['sourceUrl'] }}" target="_blank" rel="noopener">{{ $meta['sourceLabel'] }}</a>、
+  {{ $meta['deductionSourceLabel'] }}。
   団体コード{{ $municipality->code }}。金額・件数は{{ $meta['fiscalYear'] }}の決算見込として公表された値で、当サイトによる推計は含みません。
 </p>
 @endsection
