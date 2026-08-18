@@ -19,6 +19,7 @@
         $canonicalUrl = url()->current() . ($canonicalQuery ? '?' . http_build_query($canonicalQuery) : '');
     @endphp
     <link rel="canonical" href="{{ $canonicalUrl }}">
+    @stack('robots')
     <meta property="og:site_name" content="{{ config('app.name') }}">
     <meta property="og:type" content="website">
     <meta property="og:title" content="@yield('title', config('app.name') . ' | 返礼品を口コミで比較して選ぶ')">

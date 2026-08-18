@@ -4,6 +4,14 @@
 @section('title', $pageLabel . 'のふるさと納税返礼品 ' . number_format($items->total()) . '件 | ' . config('app.name'))
 @section('description', $pageLabel . 'に該当する実在のふるさと納税返礼品を、寄付額・地域・楽天レビューで比較できます。')
 
+@if($items->total() === 0)
+  {{-- 該当が0件のページは読む内容が無いので、検索結果に載せない。
+       カタログが増えて該当が出れば、この指定は自動的に外れる。 --}}
+  @push('robots')
+  <meta name="robots" content="noindex,follow">
+  @endpush
+@endif
+
 @push('structured-data')
 <script type="application/ld+json">
 {!! json_encode([

@@ -30,10 +30,15 @@ class SitemapController extends Controller
                     'lastmod' => $municipality->updated_at?->toAtomString(),
                 ])
         )->merge(
-            collect(FurusatoItem::CATEGORIES)->map(fn ($category) => [
-                'loc' => route('furusato.search', ['category' => $category]),
-                'priority' => '0.8',
-            ])
+            // 返礼品が1件も無いカテゴリは、開いても中身が無いので出さない。
+            // カタログが同期されれば自動的に載る。
+            collect(FurusatoItem::CATEGORIES)
+                ->filter(fn (string $category) => FurusatoItem::where('category', $category)->exists())
+                ->map(fn (string $category) => [
+                    'loc' => route('furusato.search', ['category' => $category]),
+                    'priority' => '0.8',
+                ])
+                ->values()
         )->merge(
             FurusatoItem::query()
                 ->select(['id', 'updated_at'])
