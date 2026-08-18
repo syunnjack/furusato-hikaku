@@ -79,12 +79,13 @@ jobs:
             touch database/database.sqlite
             chmod -R 775 storage database
             /usr/bin/php8.3 artisan migrate --force
-            # 総務省の現況調査データ（自治体ページの中身）。code をキーにした
-            # upsert なので、毎回流しても内容は変わらない。
-            /usr/bin/php8.3 artisan db:seed --class=MunicipalitySeeder --force
             /usr/bin/php8.3 artisan config:cache
             /usr/bin/php8.3 artisan route:cache
             /usr/bin/php8.3 artisan view:cache
+            # 総務省の現況調査データ（自治体ページの中身）。団体コードでのupsertなので
+            # 毎回流しても結果は同じ。4MBのJSONを読むので明示的にメモリを渡す。
+            # キャッシュ更新のあとに置き、ここで失敗しても配置済みのコードは動く状態にしておく。
+            /usr/bin/php8.3 -d memory_limit=512M artisan db:seed --class=MunicipalitySeeder --force
 
       # カタログ同期は楽天APIの認証情報に依存する。ここが失敗しても、
       # ファイルの配置とマイグレーションは終わっているため、
