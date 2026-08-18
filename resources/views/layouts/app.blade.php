@@ -5,12 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', config('app.name') . ' | 返礼品を口コミで比較して選ぶ')</title>
     <meta name="description" content="@yield('description', 'ふるさと納税の返礼品をジャンル・地域・寄付額から検索し、楽天市場の評価と利用者口コミで比較できます。')">
-    <link rel="canonical" href="{{ url()->current() }}">
+    @php
+        // url()->current() はクエリを落とすため、そのまま canonical にすると
+        // /search?category=肉 のようなカテゴリ・地域ごとのページが、すべて
+        // /search を正規URLとして申告してしまい、個別にインデックスされない。
+        // 内容が変わる条件だけを canonical に残す（並び順や計測用の値は含めない）。
+        $canonicalKeys = ['category', 'prefecture', 'keyword', 'min_price', 'max_price'];
+        $canonicalQuery = array_filter(
+            request()->only($canonicalKeys),
+            fn ($value) => $value !== null && $value !== ''
+        );
+        ksort($canonicalQuery);
+        $canonicalUrl = url()->current() . ($canonicalQuery ? '?' . http_build_query($canonicalQuery) : '');
+    @endphp
+    <link rel="canonical" href="{{ $canonicalUrl }}">
     <meta property="og:site_name" content="{{ config('app.name') }}">
     <meta property="og:type" content="website">
     <meta property="og:title" content="@yield('title', config('app.name') . ' | 返礼品を口コミで比較して選ぶ')">
     <meta property="og:description" content="@yield('description', '実在するふるさと納税返礼品を、地域・寄付額・口コミで比較できます。')">
-    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:url" content="{{ $canonicalUrl }}">
     <meta property="og:locale" content="ja_JP">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="icon" href="/favicon.ico" sizes="any">
