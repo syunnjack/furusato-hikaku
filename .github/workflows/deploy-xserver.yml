@@ -92,4 +92,12 @@ jobs:
             # Xserver へのSSHが時間切れになり、同期だけ動かない状態が続いた。
             # 楽天APIの認証情報が無いときは失敗するが、配置とマイグレーションは
             # 終わっているので、ここではデプロイ全体を落とさない。
-            /usr/bin/php8.3 artisan furusato:sync-catalog --pages=3 --delay=700 || echo "カタログ同期に失敗しました（上のログを確認してください）"
+            # 同期の結果を public に書き出す。Actions のログを開かなくても
+            # https://furusato-hikaku.net/sync-status.txt で状態を確認できる。
+            # 認証情報そのものは出力しない（有無と文字数だけ）。
+            {
+              date '+%Y-%m-%d %H:%M:%S %Z'
+              /usr/bin/php8.3 artisan furusato:sync-catalog --pages=3 --delay=700 2>&1
+              echo "終了コード: $?"
+            } > public/sync-status.txt 2>&1 || true
+            tail -5 public/sync-status.txt
