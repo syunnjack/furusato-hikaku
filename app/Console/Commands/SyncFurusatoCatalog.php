@@ -34,6 +34,13 @@ class SyncFurusatoCatalog extends Command
         $delay = max(250, (int) $this->option('delay'));
         $synced = 0;
 
+        // 失敗したときに原因が分かるよう、設定の有無をログに出す（値は伏せる）。
+        foreach (['app_id' => 'RAKUTEN_APP_ID', 'access_key' => 'RAKUTEN_ACCESS_KEY', 'affiliate_id' => 'RAKUTEN_AFFILIATE_ID'] as $key => $label) {
+            $value = (string) config("services.rakuten.{$key}");
+            $this->line("{$label}: ".($value === '' ? '未設定' : '設定あり（'.mb_strlen($value).'文字）'));
+        }
+        $this->line('APP_URL: '.(config('app.url') ?: '未設定'));
+
         $keywords = self::KEYWORDS;
         $this->info('ふるさと納税カタログを同期します（検索語'.count($keywords)."語 × 最大{$pages}ページ）。");
 

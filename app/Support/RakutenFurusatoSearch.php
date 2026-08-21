@@ -12,6 +12,19 @@ class RakutenFurusatoSearch
     public const REQUIRED_KEYWORD = 'ふるさと納税';
 
     /**
+     * 楽天APIは Referer を見ており、localhost や空だと 503 を返す。
+     * APP_URL が本番のURLになっていない環境でも動くよう、ここで補う。
+     */
+    private const SITE_URL = 'https://furusato-hikaku.net';
+
+    private static function siteUrl(): string
+    {
+        $url = (string) config('app.url');
+
+        return str_starts_with($url, 'https://') ? $url : self::SITE_URL;
+    }
+
+    /**
      * @return array<int, array<string, mixed>>
      */
     public static function search(string $keyword, int $page = 1, string $sort = 'standard'): array
@@ -29,7 +42,12 @@ class RakutenFurusatoSearch
         $accessKey = (string) config('services.rakuten.access_key');
 
         if ($appId === '' || $accessKey === '') {
-            return [...$empty, 'error' => '楽天APIの認証情報が設定されていません。'];
+            $missing = implode('と', array_filter([
+                $appId === '' ? 'RAKUTEN_APP_ID' : null,
+                $accessKey === '' ? 'RAKUTEN_ACCESS_KEY' : null,
+            ]));
+
+            return [...$empty, 'error' => "楽天APIの認証情報が設定されていません（{$missing} が空）。"];
         }
 
         $params = [
@@ -58,8 +76,8 @@ class RakutenFurusatoSearch
         try {
             $response = Http::timeout(15)
                 ->withHeaders([
-                    'Referer' => config('app.url'),
-                    'Origin' => config('app.url'),
+                    'Referer' => self::siteUrl(),
+                    'Origin' => self::siteUrl(),
                 ])
                 ->get('https://openapi.rakuten.co.jp/ichibams/api/IchibaItem/Search/20260701', $params);
         } catch (ConnectionException) {
