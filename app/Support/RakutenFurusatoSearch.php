@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Log;
 
 class RakutenFurusatoSearch
 {
+    /** 返礼品以外を拾わないための、必ず付ける検索語。 */
+    public const REQUIRED_KEYWORD = 'ふるさと納税';
+
     /**
      * @return array<int, array<string, mixed>>
      */
@@ -35,7 +38,6 @@ class RakutenFurusatoSearch
             'applicationId' => $appId,
             'accessKey' => $accessKey,
             'affiliateId' => config('services.rakuten.affiliate_id'),
-            'genreId' => 100227,
             'hits' => 30,
             'page' => max(1, min(100, $page)),
             'sort' => in_array($sort, ['standard', '-reviewCount', '-reviewAverage', '+itemPrice', '-itemPrice', '-updateTimestamp'], true)
@@ -45,9 +47,13 @@ class RakutenFurusatoSearch
             'availability' => 1,
         ];
 
-        if (filled($keyword)) {
-            $params['keyword'] = trim((string) $keyword);
-        }
+        // 「ふるさと納税」を必ず条件に入れる。
+        // ジャンル（食品 genreId=100227）だけで絞っていたときは、返礼品でない
+        // 通常の商品が9割を占めていた（30件中3件しか返礼品でなかった）。
+        // 楽天のキーワードは空白区切りのAND検索なので、利用者の語と並べて渡す。
+        $params['keyword'] = filled($keyword)
+            ? self::REQUIRED_KEYWORD.' '.trim((string) $keyword)
+            : self::REQUIRED_KEYWORD;
 
         try {
             $response = Http::timeout(15)
