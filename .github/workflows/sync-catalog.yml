@@ -8,9 +8,9 @@ on:
   workflow_dispatch:
     inputs:
       pages:
-        description: Number of Rakuten API pages to sync
+        description: 検索語1つあたりのページ数（検索語は30語ある）
         required: false
-        default: '50'
+        default: '3'
 
 concurrency:
   group: furusato-catalog-sync
@@ -25,9 +25,10 @@ jobs:
         with:
           host: ${{ secrets.SSH_HOST }}
           port: 10022
+          command_timeout: 30m
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
             cd "${{ secrets.XSERVER_DEPLOY_PATH }}"
-            /usr/bin/php8.3 artisan furusato:sync-catalog --pages=${{ inputs.pages || '50' }} --delay=800
+            /usr/bin/php8.3 artisan furusato:sync-catalog --pages=${{ inputs.pages || '3' }} --delay=700

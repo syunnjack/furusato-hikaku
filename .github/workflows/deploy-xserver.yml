@@ -65,11 +65,12 @@ jobs:
           remote_user: ${{ secrets.SSH_USERNAME }}
           remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Run migrations and cache config
+      - name: Run migrations, seed and sync
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
           port: 10022
+          command_timeout: 30m
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
@@ -87,18 +88,8 @@ jobs:
             # キャッシュ更新のあとに置き、ここで失敗しても配置済みのコードは動く状態にしておく。
             /usr/bin/php8.3 -d memory_limit=512M artisan db:seed --class=MunicipalitySeeder --force
 
-      # カタログ同期は楽天APIの認証情報に依存する。ここが失敗しても、
-      # ファイルの配置とマイグレーションは終わっているため、
-      # デプロイ全体を失敗扱いにしない（同期の可否は下のログで分かる）。
-      - name: Sync catalog (楽天APIの認証情報が必要)
-        continue-on-error: true
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          port: 10022
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            set -e
-            cd "${{ secrets.XSERVER_DEPLOY_PATH }}"
-            /usr/bin/php8.3 artisan furusato:sync-catalog --pages=50 --delay=800
+            # カタログ同期も同じ接続の中で行う。別のステップで開き直すと
+            # Xserver へのSSHが時間切れになり、同期だけ動かない状態が続いた。
+            # 楽天APIの認証情報が無いときは失敗するが、配置とマイグレーションは
+            # 終わっているので、ここではデプロイ全体を落とさない。
+            /usr/bin/php8.3 artisan furusato:sync-catalog --pages=3 --delay=700 || echo "カタログ同期に失敗しました（上のログを確認してください）"
