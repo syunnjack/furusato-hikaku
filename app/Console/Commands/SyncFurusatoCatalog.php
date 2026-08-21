@@ -60,9 +60,12 @@ class SyncFurusatoCatalog extends Command
                 $rows = collect($result['items'])
                     ->map(fn (array $item) => FurusatoItem::normalizeRakutenItem($item, $page))
                     ->filter(fn (array $item) => $item['item_code'] !== '' && $item['item_url'] !== '')
-                    // 検索語で絞ってはいるが、商品名に「ふるさと納税」が無いものは
-                    // 返礼品でない可能性があるため取り込まない。
-                    ->filter(fn (array $item) => str_contains($item['item_name'], RakutenFurusatoSearch::REQUIRED_KEYWORD))
+                    // 検索語で絞ってはいるが、返礼品でないものが混ざらないよう
+                    // 商品名か店名に「ふるさと納税」があることを確かめる。
+                    // 店名が「○○ふるさと納税」で商品名には入れていない自治体があるため、
+                    // 商品名だけで判定すると取りこぼす。
+                    ->filter(fn (array $item) => str_contains($item['item_name'], RakutenFurusatoSearch::REQUIRED_KEYWORD)
+                        || str_contains((string) ($item['shop_name'] ?? ''), RakutenFurusatoSearch::REQUIRED_KEYWORD))
                     ->values()
                     ->all();
 
