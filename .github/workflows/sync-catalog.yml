@@ -1,9 +1,16 @@
 name: Sync furusato catalog
 
+# 楽天から返礼品を取り直して、本番のデータベースへ入れる。
+#
+# 03:20 JST（18:20 UTC）に実行していたが、サーバーへのSSHが毎回
+# タイムアウトして失敗し続けていた。昼の時間帯へ移す（13:20 JST）。
+#
+# 移したあとも `dial tcp ...:10022: i/o timeout` で断続的に落ちる
+# （8/20・8/21・8/23 が失敗、8/22 は成功）。TCPの接続すら張れていないので、
+# 待って掛け直せば通ることが多い。接続の待ち時間を延ばし、3回まで試す。
+
 on:
   schedule:
-    # 03:20 JST（18:20 UTC）に実行していたが、サーバーへのSSHが毎回
-    # タイムアウトして失敗し続けていた。昼の時間帯へ移す（13:20 JST）。
     - cron: '20 4 * * *'
   workflow_dispatch:
     inputs:
@@ -20,11 +27,55 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - name: Sync production catalog over SSH
+      - name: 同期（1回目）
+        id: try1
+        continue-on-error: true
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
           port: 10022
+          timeout: 120s
+          command_timeout: 30m
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd "${{ secrets.XSERVER_DEPLOY_PATH }}"
+            /usr/bin/php8.3 artisan furusato:sync-catalog --pages=${{ inputs.pages || '3' }} --delay=700
+
+      - name: 3分待つ
+        if: steps.try1.outcome == 'failure'
+        run: sleep 180
+
+      - name: 同期（2回目）
+        id: try2
+        if: steps.try1.outcome == 'failure'
+        continue-on-error: true
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          port: 10022
+          timeout: 120s
+          command_timeout: 30m
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd "${{ secrets.XSERVER_DEPLOY_PATH }}"
+            /usr/bin/php8.3 artisan furusato:sync-catalog --pages=${{ inputs.pages || '3' }} --delay=700
+
+      - name: さらに5分待つ
+        if: steps.try1.outcome == 'failure' && steps.try2.outcome == 'failure'
+        run: sleep 300
+
+      # 3回目で落ちたら、そこで初めてジョブを失敗にする。
+      - name: 同期（3回目）
+        if: steps.try1.outcome == 'failure' && steps.try2.outcome == 'failure'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          port: 10022
+          timeout: 120s
           command_timeout: 30m
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
